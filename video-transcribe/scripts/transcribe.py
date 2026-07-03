@@ -63,10 +63,17 @@ def bilibili_fetch_audio(url_or_bv, workdir):
     return max(audios, key=lambda p: p.stat().st_size)
 
 
+def find_ffmpeg():
+    tool = Path.home() / "tools/ffmpeg/ffmpeg"
+    if tool.is_file():
+        return str(tool)
+    return shutil.which("ffmpeg")
+
+
 def extract_audio(video_path, workdir):
-    ffmpeg = shutil.which("ffmpeg")
+    ffmpeg = find_ffmpeg()
     if not ffmpeg:
-        sys.exit("ERROR: 本地视频抽音频需要 ffmpeg（沙盒没有则列待人项）；音频文件或 B 站链接不需要")
+        sys.exit("ERROR: 本地视频抽音频需要 ffmpeg——先运行 scripts/install_ffmpeg.sh 装到 ~/tools/ffmpeg/；音频文件或 B 站链接不需要")
     out = Path(workdir) / "extracted.m4a"
     r = subprocess.run([ffmpeg, "-y", "-i", str(video_path), "-vn", "-acodec", "aac",
                         "-b:a", "64k", str(out)], capture_output=True, text=True, timeout=1800)

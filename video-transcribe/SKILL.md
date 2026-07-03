@@ -20,16 +20,16 @@ author: Guanxi Yi (third-party)
 - **落位闭环（存储到正确为止）**：用户在对话里给出 key 后，FDE：① 写入上述文件并 `chmod 600`；② **立即实测验证**——`curl -s https://api.siliconflow.cn/v1/models -H "Authorization: Bearer $KEY" | head -c 100` 返回模型列表即有效；③ 验证失败（401/403）→ 不落位、说明失败原因、重新向用户索要，**直到验证通过才算落位完成**；④ 全程零回显（不把 key 或文件内容贴进任何消息/工单/报告，只说「已落位并验证通过」）。
 - 脚本读取顺序：环境变量 `SILICONFLOW_API_KEY` > `~/agents/API-Keys/siliconflow.env`。
 
-## 工具依赖：BBDown（装 tools/，装 skill 时一并装）
-
-B 站下载用 [BBDown](https://github.com/nilaoda/BBDown)（自包含二进制，处理 B 站反爬/流解析）：
+## 工具依赖（装 tools/，装 skill 时一并装；均为通用常备工具）
 
 ```bash
-bash scripts/install_bbdown.sh    # 自动识别 OS/架构，装到 ~/tools/bbdown/，装完自检
+bash scripts/install_bbdown.sh    # BBDown → ~/tools/bbdown/（B 站下载/反爬；自动识别 OS/架构，装完自检）
+bash scripts/install_ffmpeg.sh    # ffmpeg → ~/tools/ffmpeg/（音视频处理常备件：本 skill 用于本地视频抽音频，未来剪辑等也用它）
 ```
 
-- 装完验证：`~/tools/bbdown/BBDown --version 2>&1 | head -1` 有输出即可。
-- 网络不通 GitHub 时脚本会明确报错——列待人项，不要盲重试。
+- [BBDown](https://github.com/nilaoda/BBDown)：自包含二进制。B 站链接转录用 `--audio-only --skip-mux` 音频直出，**不依赖 ffmpeg**。
+- ffmpeg：静态构建（Linux 走 johnvansickle 静态包）。本 skill 里仅「本地视频文件抽音频」这一步用到；装上即为实例常备工具。
+- 网络不通导致下载失败时脚本会明确报错——列待人项，不要盲重试。
 
 ## 用法
 
@@ -43,7 +43,7 @@ python3 scripts/transcribe.py --input /path/to/meeting.mp4 --output-dir ~/output
 
 - 输出：`<output-dir>/<标题或文件名>.transcript.txt`（全文）+ stdout 一个 JSON（`text_path` / `chars` / `preview`）。
 - `--model` 可换 ASR 模型；`--keep-audio` 保留中间音频（默认转录完删除）。
-- 本地视频文件抽音频需要 `ffmpeg`；没有 ffmpeg 时：音频文件（mp3/m4a/wav/aac/flac）直接可用，B 站链接走 BBDown `--audio-only` 也不需要 ffmpeg。
+- 本地视频文件抽音频用 `~/tools/ffmpeg/`（没装先跑 `install_ffmpeg.sh`）；音频文件（mp3/m4a/wav/aac/flac）与 B 站链接不需要 ffmpeg。
 
 ## 使用纪律
 
