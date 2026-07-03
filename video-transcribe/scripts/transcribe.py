@@ -133,6 +133,9 @@ def main():
             m = re.search(r"BV[0-9A-Za-z]{10}", src)
             label = m.group(0) if m else "bilibili"
         else:
+            if re.match(r"https?://", src):
+                sys.exit("ERROR: 在线链接当前仅支持 B 站（BV 号/bilibili.com/b23.tv）——"
+                         f"其他网站待加适配器，请先手动下载为本地文件再转录：{src}")
             p = Path(src).expanduser()
             if not p.exists():
                 sys.exit(f"ERROR: 输入既不是存在的文件也不是 B 站链接：{src}")

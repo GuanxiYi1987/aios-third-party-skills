@@ -1,7 +1,7 @@
 ---
 name: video-transcribe
 type: capability
-description: 视频/音频转录（硅基流动 ASR）：输入本地音视频文件或 B 站链接（BV 号/b23.tv），输出转录文本落 output/。B 站下载走 BBDown 工具（装在 tools/，反爬由它处理）。纯转录工具——摘要/纪要/分类等业务加工属于调用方 extension，不在本 skill。
+description: 视频/音频转录（硅基流动 ASR）。适用范围注意：本地音视频文件=任何来源通用；在线链接=仅支持 B 站（BV 号/bilibili.com/b23.tv，走 BBDown），YouTube 等其他网站链接不支持（会明确报错）。输出转录文本落 output/。纯转录工具——摘要/纪要/分类等业务加工属于调用方 extension。
 version: 1.0.0
 author: Guanxi Yi (third-party)
 ---
@@ -10,6 +10,15 @@ author: Guanxi Yi (third-party)
 
 > ASR = 硅基流动 `POST /v1/audio/transcriptions`（默认 model `FunAudioLLM/SenseVoiceSmall`，可换 `TeleAI/TeleSpeechASR`）。
 > 定位 = 纯转录 capability：给文件/链接 → 出文本。业务逻辑（每日总结、会议纪要、分类归档）由调用方的 extension skill 决定。
+
+## 适用范围（先看这个）
+
+| 输入类型 | 支持范围 |
+|---|---|
+| 本地音视频文件 | **通用**——任何来源（会议录像/录屏/下载的文件），音频直转，视频经 ffmpeg 抽音频 |
+| 在线链接 | **仅 B 站**（BV 号 / bilibili.com / b23.tv，经 BBDown）。YouTube/抖音等其他网站**不支持**，脚本会明确报错，不要尝试绕 |
+
+> 其他网站要支持 = 加对应下载适配器（如 yt-dlp），届时升版本；在那之前遇到其他网站链接如实报缺口。
 
 ## 密钥纪律（铁律，装 skill 时先过这关）
 
