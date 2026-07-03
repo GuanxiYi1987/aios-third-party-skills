@@ -22,10 +22,13 @@ author: Guanxi Yi (third-party)
 
 ## 密钥纪律（铁律，装 skill 时先过这关）
 
-- **本 skill 及仓库永不存储任何密钥**。真密钥在数据盘 `agents/API-Keys/siliconflow.env`，格式一行：
+- **本 skill 及仓库永不存储任何密钥**。真密钥与该服务的完整配置在数据盘 `agents/API-Keys/siliconflow.env`（**env 文件 = 该服务的配置台账，信息写全**）：
   ```
-  SILICONFLOW_API_KEY=<用户提供的 key>
+  SILICONFLOW_API_KEY=<用户提供的 key>          # 必填
+  SILICONFLOW_BASE_URL=https://api.siliconflow.cn/v1   # 选填，缺省用此默认；落位时请写全
+  SILICONFLOW_ASR_MODEL=FunAudioLLM/SenseVoiceSmall    # 选填，缺省用此默认；落位时请写全
   ```
+  优先级：命令行 `--model` > 环境变量 > env 文件 > 脚本内置默认。**FDE 落位时三行都写上**（用户只给 key 时其余按默认补全）——将来换模型/换 endpoint 只改这个文件，不动 skill。
 - **落位闭环（存储到正确为止）**：用户在对话里给出 key 后，FDE：① 写入上述文件并 `chmod 600`；② **立即实测验证**——`curl -s https://api.siliconflow.cn/v1/models -H "Authorization: Bearer $KEY" | head -c 100` 返回模型列表即有效；③ 验证失败（401/403）→ 不落位、说明失败原因、重新向用户索要，**直到验证通过才算落位完成**；④ 全程零回显（不把 key 或文件内容贴进任何消息/工单/报告，只说「已落位并验证通过」）。
 - 脚本读取顺序：环境变量 `SILICONFLOW_API_KEY` > `~/agents/API-Keys/siliconflow.env`。
 

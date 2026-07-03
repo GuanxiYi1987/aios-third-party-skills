@@ -20,23 +20,30 @@ import urllib.request
 import uuid
 from pathlib import Path
 
-API = "https://api.siliconflow.cn/v1/audio/transcriptions"
+DEFAULT_BASE_URL = "https://api.siliconflow.cn/v1"
 DEFAULT_MODEL = "FunAudioLLM/SenseVoiceSmall"
 AUDIO_EXTS = {".mp3", ".m4a", ".wav", ".aac", ".flac", ".ogg", ".opus", ".m4s"}
 VIDEO_EXTS = {".mp4", ".mkv", ".mov", ".flv", ".webm", ".avi", ".ts"}
 BILI_RE = re.compile(r"(BV[0-9A-Za-z]{10})|bilibili\.com|b23\.tv")
 
 
-def load_api_key():
-    key = os.environ.get("SILICONFLOW_API_KEY", "").strip()
-    if key:
-        return key
+def load_config():
+    """配置优先级：环境变量 > env 文件 > 内置默认。env 文件是该服务的完整配置台账。"""
+    keys = ("SILICONFLOW_API_KEY", "SILICONFLOW_BASE_URL", "SILICONFLOW_ASR_MODEL")
+    cfg = {k: os.environ.get(k, "").strip() for k in keys}
     env_file = Path.home() / "agents/API-Keys/siliconflow.env"
     if env_file.is_file():
         for line in env_file.read_text().splitlines():
-            if line.strip().startswith("SILICONFLOW_API_KEY="):
-                return line.split("=", 1)[1].strip()
-    sys.exit("ERROR: 未找到密钥——设 SILICONFLOW_API_KEY 环境变量，或按密钥纪律落位 ~/agents/API-Keys/siliconflow.env")
+            line = line.strip()
+            if "=" in line and not line.startswith("#"):
+                k, v = line.split("=", 1)
+                if k.strip() in keys and not cfg[k.strip()]:
+                    cfg[k.strip()] = v.strip()
+    if not cfg["SILICONFLOW_API_KEY"]:
+        sys.exit("ERROR: 未找到密钥——设 SILICONFLOW_API_KEY 环境变量，或按密钥纪律落位 ~/agents/API-Keys/siliconflow.env")
+    cfg["SILICONFLOW_BASE_URL"] = cfg["SILICONFLOW_BASE_URL"] or DEFAULT_BASE_URL
+    cfg["SILICONFLOW_ASR_MODEL"] = cfg["SILICONFLOW_ASR_MODEL"] or DEFAULT_MODEL
+    return cfg
 
 
 def find_bbdown():
@@ -82,7 +89,7 @@ def extract_audio(video_path, workdir):
     return out
 
 
-def asr_transcribe(audio_path, model, api_key):
+def asr_transcribe(audio_path, model, api_key, base_url):
     boundary = uuid.uuid4().hex
     fname = Path(audio_path).name
     # m4s 是 B 站分段容器，按 mp4 音频处理；ASR 端按内容识别
@@ -94,7 +101,8 @@ def asr_transcribe(audio_path, model, api_key):
         f"Content-Type: {ctype}\r\n\r\n".encode() + data + b"\r\n",
         f"--{boundary}--\r\n".encode(),
     ])
-    req = urllib.request.Request(API, data=body, method="POST", headers={
+    api = base_url.rstrip("/") + "/audio/transcriptions"
+    req = urllib.request.Request(api, data=body, method="POST", headers={
         "Authorization": f"Bearer {api_key}",
         "Content-Type": f"multipart/form-data; boundary={boundary}",
     })
@@ -117,11 +125,13 @@ def main():
     parser = argparse.ArgumentParser(description="video/audio -> transcript via SiliconFlow ASR")
     parser.add_argument("--input", required=True, help="本地音视频路径，或 B 站 BV 号/链接")
     parser.add_argument("--output-dir", default=str(Path.home() / "output/转录"))
-    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--model", default=None, help="覆盖 env/默认的 ASR 模型")
     parser.add_argument("--keep-audio", action="store_true")
     args = parser.parse_args()
 
-    api_key = load_api_key()
+    cfg = load_config()
+    api_key = cfg["SILICONFLOW_API_KEY"]
+    model = args.model or cfg["SILICONFLOW_ASR_MODEL"]
     outdir = Path(args.output_dir).expanduser()
     outdir.mkdir(parents=True, exist_ok=True)
     workdir = Path(tempfile.mkdtemp(prefix="transcribe-"))
@@ -143,8 +153,8 @@ def main():
             audio = p if p.suffix.lower() in AUDIO_EXTS else extract_audio(p, workdir)
 
         size_mb = audio.stat().st_size / 1024 / 1024
-        print(f"[asr] {audio.name}（{size_mb:.1f} MB）→ {args.model}", file=sys.stderr)
-        text = asr_transcribe(audio, args.model, api_key)
+        print(f"[asr] {audio.name}（{size_mb:.1f} MB）→ {model} @ {cfg['SILICONFLOW_BASE_URL']}", file=sys.stderr)
+        text = asr_transcribe(audio, model, api_key, cfg["SILICONFLOW_BASE_URL"])
         if not text.strip():
             sys.exit("ERROR: ASR 返回空文本（检查音频是否有效/有人声）")
 
