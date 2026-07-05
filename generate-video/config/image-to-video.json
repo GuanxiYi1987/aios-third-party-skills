@@ -1,0 +1,11 @@
+{
+    "model": "doubao-seedance-2-0-260128",
+    "prompt": "让图片中的场景动起来，保持原有风格",
+    "reference_images": [
+        "https://example.com/image.jpg"
+    ],
+    "ratio": "16:9",
+    "duration": 5,
+    "generate_audio": true,
+    "watermark": false
+}

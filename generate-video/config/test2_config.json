@@ -1,0 +1,8 @@
+{
+    "model": "doubao-seedance-2-0-260128",
+    "prompt": "夜晚的城市街道，霓虹灯闪烁，车流如织，现代都市夜景",
+    "ratio": "16:9",
+    "duration": 5,
+    "generate_audio": true,
+    "watermark": false
+}

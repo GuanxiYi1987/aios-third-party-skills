@@ -1,0 +1,23 @@
+{
+    "input_videos": [
+        "~/output/视频生成/示例项目/scene_01.mp4",
+        "~/output/视频生成/示例项目/scene_02.mp4",
+        "~/output/视频生成/示例项目/scene_03.mp4"
+    ],
+    "transitions": ["fade", "dissolve"],
+    "subtitles": {
+        "texts": ["第一幕：春日花开", "第二幕：少女起舞", "第三幕：花落人散"],
+        "durations": [5, 5, 5],
+        "style": {
+            "font": "NotoSansCJK",
+            "size": 48,
+            "color": "white",
+            "position": "bottom"
+        }
+    },
+    "bgm": "~/output/视频生成/示例项目/background_music.mp3",
+    "resolution": "1920x1080",
+    "fps": 30,
+    "bitrate": "8M",
+    "output": "~/output/视频生成/示例项目/final_video.mp4"
+}

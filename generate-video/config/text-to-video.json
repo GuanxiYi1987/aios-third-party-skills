@@ -1,0 +1,8 @@
+{
+    "model": "doubao-seedance-2-0-260128",
+    "prompt": "一只可爱的猫咪在草地上玩耍，阳光明媚，微风轻拂",
+    "ratio": "16:9",
+    "duration": 5,
+    "generate_audio": true,
+    "watermark": false
+}
