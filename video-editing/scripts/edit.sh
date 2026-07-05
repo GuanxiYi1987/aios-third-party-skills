@@ -310,9 +310,9 @@ concat_videos_with_transitions() {
     
     echo "Applying transitions: ${transition_array[*]}" >&2
     eval "$cmd" 2>&1 | grep -v "^\s*Duration:" >&2 || true
-    
-    # 清理临时文件
-    rm -rf "$temp_dir"
+
+    # 临时目录与 main 同为 /tmp/video_edit_$$，输出文件常落在其中——
+    # 此处不清理，统一由调用方（main）收尾，否则输出先于使用被删
 }
 
 # 添加字幕
