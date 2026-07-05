@@ -1,0 +1,10 @@
+{
+    "model": "gpt-4o-image",
+    "prompt": "春天的樱花树下，一位穿着汉服的少女在跳舞，唯美治愈风格",
+    "size": "1024x1024",
+    "quality": "high",
+    "style": "vivid",
+    "n": 1,
+    "output_dir": "~/output/视频生成/示例项目/images/",
+    "filename": "scene_01_ref.png"
+}
